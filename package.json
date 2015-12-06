@@ -1,0 +1,26 @@
+{
+  "name": "homecomfort",
+  "version": "0.1.0",
+  "description": "Homeautomation Interface for a Z-Wave infrastructure using the RaZberry REST interface.",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stefanmayer13/homecomfort.git"
+  },
+  "keywords": [
+    "z-wave",
+    "raspberry",
+    "homeautomation",
+    "razberry",
+    "automation"
+  ],
+  "author": "Stefan Mayer <stefanmayer13@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/stefanmayer13/homecomfort/issues"
+  },
+  "homepage": "https://github.com/stefanmayer13/homecomfort#readme"
+}
