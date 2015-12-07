@@ -8,7 +8,7 @@ function doRequest(method, url, data, headers) {
     return new Promise((resolve, reject) => {
         const req = request[method](url);
 
-        if (headers && headers.length > 0) {
+        if (headers) {
             const headerKeys = Object.keys(headers);
             headerKeys.forEach((key) => {
                 req.set(key, headers[key]);
@@ -29,11 +29,11 @@ function doRequest(method, url, data, headers) {
 }
 
 module.exports = {
-    get: function get(method, url, headers) {
+    get: function get(url, headers) {
         return doRequest('get', url, null, headers);
     },
 
-    post: function post(method, url, data, headers) {
+    post: function post(url, data, headers) {
         return doRequest('post', url, data, headers);
     },
 };
