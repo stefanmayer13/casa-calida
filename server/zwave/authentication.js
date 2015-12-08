@@ -3,7 +3,7 @@
  */
 
 const request = require('../utils/request');
-const url = require('urls');
+const url = require('../urls');
 
 module.exports = {
     login: function login(username, password, rememeberMe = false) {

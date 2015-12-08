@@ -3,10 +3,20 @@
  */
 let request = require('superagent'); // eslint-disable-line prefer-const
 const Promise = require('bluebird');
+const processArguments = require('./processArguments');
+
+const env = processArguments.get('env');
+if (!env) {
+    console.error('Please provide "env" as an argument');
+    process.exit(-1);
+}
+const environment = require(`../../environment/${env}`);
+
+const baseUrl = environment.secure ? 'https' : 'http' + `://${environment.server}:${environment.port}`;
 
 function doRequest(method, url, data, headers) {
     return new Promise((resolve, reject) => {
-        const req = request[method](url);
+        const req = request[method](baseUrl + url);
 
         if (headers) {
             const headerKeys = Object.keys(headers);

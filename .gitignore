@@ -3,3 +3,8 @@
 
 # Dependencies
 node_modules
+
+#Configs
+environment/*
+
+*.bat
