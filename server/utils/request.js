@@ -7,7 +7,7 @@ const processArguments = require('./processArguments');
 
 const env = processArguments.get('env');
 if (!env) {
-    console.error('Please provide "env" as an argument');
+    console.error('Please provide "env" as an argument'); // eslint-disable-line no-console
     process.exit(-1);
 }
 const environment = require(`../../environment/${env}`);

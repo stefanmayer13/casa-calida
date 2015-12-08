@@ -4,4 +4,5 @@
 
 module.exports = {
     login: '/ZAutomation/api/v1/login',
-}
+    devices: '/ZWaveAPI/Data/0',
+};

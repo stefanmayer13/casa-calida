@@ -6,4 +6,4 @@ module.exports = {
     server: '192.168.1.2',
     port: '8083',
     secure: false,
-}
+};

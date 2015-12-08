@@ -14,4 +14,4 @@ module.exports = {
     get: function getArgument(argument) {
         return cliArguments[argument];
     },
-}
+};
