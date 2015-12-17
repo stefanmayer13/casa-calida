@@ -17,20 +17,47 @@ if (!username || !password) {
     process.exit(-1);
 }
 
+const state = {
+    cookie: null,
+    log,
+};
+
 authentication.login(log, username, password)
 .then((cookie) => {
-    return devicesApi.getDevicesInfo({
-        cookie,
-        log,
-    });
+    state.cookie = cookie;
+    return devicesApi.getDevicesInfo(state);
 }).then((data) => {
     // const controller = data.controller;
-    const devices = data.devices;
-    const keys = Object.keys(devices);
-    const names = keys.map((key) => {
-        return devices[key].data.givenName.value;
+    const keys = Object.keys(data.devices);
+    const devices = keys.map((key) => {
+        return {
+            name: data.devices[key].data.givenName.value,
+            xml: data.devices[key].data.ZDDXMLFile.value,
+            deviceType: data.devices[key].data.deviceTypeString.value,
+            isAwake: data.devices[key].data.isAwake.value,
+            vendor: data.devices[key].data.vendorString.value,
+            temperature: data.devices[key].instances['0'].commandClasses['49'] ? data.devices[key].instances['0'].commandClasses['49'].data['1'].val.value + ' ' + data.devices[key].instances['0'].commandClasses['49'].data['1'].scaleString.value : null,
+            battery: data.devices[key].instances['0'].commandClasses['128'] ? data.devices[key].instances['0'].commandClasses['128'].data.last.value : null,
+        };
     });
-    names.forEach((device) => {
+    devices.forEach((device) => {
         console.log(device); // eslint-disable-line no-console
     });
+
+    const xmlRequest = devices.filter((device) => {
+        return !!device.xml;
+    }).map((device) => {
+        return devicesApi.getXml(state, device.xml);
+    });
+
+    return Promise.all(xmlRequest);
+}).then((data) => {
+    data.map((doc) => {
+        //console.log(doc.toString());
+        console.log(doc.get('deviceDescription'));
+        return doc.get('deviceDescription');
+    }).forEach((text) => {
+        console.log(text);
+    });
+    //console.log(data);
 });

@@ -1,7 +1,7 @@
 /**
  * @author <a href="mailto:stefanmayer13@gmail.com">Stefan Mayer</a>
  */
-let request = require('superagent'); // eslint-disable-line prefer-const
+const request = require('superagent'); // eslint-disable-line prefer-const
 const Promise = require('bluebird');
 const processArguments = require('./processArguments');
 
@@ -29,6 +29,7 @@ function doRequest(method, url, data, headers) {
             req.send(data);
         }
 
+        //req.parse(xml2jsParser);
         req.end((err, requestedData) => {
             if (err) {
                 return reject(err);
