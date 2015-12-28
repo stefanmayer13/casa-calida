@@ -4,6 +4,7 @@
   "description": "Homeautomation Interface for a Z-Wave infrastructure using the RaZberry REST interface.",
   "main": "index.js",
   "scripts": {
+    "start": "babel-node server/server",
     "check": "eslint .",
     "test": "mocha --color --compilers js:babel-register server/tests/**/*.spec.js"
   },
@@ -42,7 +43,8 @@
   "dependencies": {
     "bluebird": "^3.1.1",
     "bunyan": "^1.5.1",
-    "libxmljs": "^0.16.1",
+    "hapi": "^11.1.4",
+    "mongodb": "^2.1.2",
     "superagent": "^1.6.1"
   }
 }
