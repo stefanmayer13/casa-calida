@@ -2,9 +2,17 @@
  * @author <a href="mailto:stefanmayer13@gmail.com">Stefan Mayer</a>
  */
 
+const merge = require('deepmerge');
+
 const authentication = require('./authentication');
 const devicesApi = require('./devices');
 const mongodb = require('../utils/MongoDBHelper');
+
+const commandClassConverter = {
+    '48': require('./converter/SensorBinary'),
+    '49': require('./converter/SensorMultilevel'),
+    '156': require('./converter/AlarmSensor'),
+};
 
 module.exports = function zwave(log, username, password) {
     log.debug(`Zwave started`);
@@ -23,10 +31,21 @@ module.exports = function zwave(log, username, password) {
         state.cookie = results[1];
         return devicesApi.getDevicesInfo(state);
     }).then((data) => {
-        // const controller = data.controller;
+        //const controller = data.controller;
         const keys = Object.keys(data.devices);
         log.debug(`Found ${keys.length} zwave devices`);
         const devices = keys.map((key) => {
+            const commandClasses = Object.keys(data.devices[key].instances['0'].commandClasses);
+            const sensors = commandClasses
+                .filter((commandClass) => {
+                    return commandClassConverter[commandClass];
+                })
+                .map((commandClass) => {
+                    const converter = commandClassConverter[commandClass];
+                    return converter(commandClass, data.devices[key].instances['0'].commandClasses[commandClass]);
+                });
+
+            const flattenSensors = [].concat.apply([], sensors);
             return {
                 _id: key,
                 name: data.devices[key].data.givenName.value,
@@ -34,8 +53,10 @@ module.exports = function zwave(log, username, password) {
                 deviceType: data.devices[key].data.deviceTypeString.value,
                 isAwake: data.devices[key].data.isAwake.value,
                 vendor: data.devices[key].data.vendorString.value,
-                temperature: data.devices[key].instances['0'].commandClasses['49'] ? data.devices[key].instances['0'].commandClasses['49'].data['1'].val.value + ' ' + data.devices[key].instances['0'].commandClasses['49'].data['1'].scaleString.value : null,
-                battery: data.devices[key].instances['0'].commandClasses['128'] ? data.devices[key].instances['0'].commandClasses['128'].data.last.value : null,
+                battery: {
+                    value: data.devices[key].instances['0'].commandClasses['128'] ? data.devices[key].instances['0'].commandClasses['128'].data.last.value : null,
+                },
+                sensors: flattenSensors,
             };
         });
 
@@ -55,8 +76,10 @@ module.exports = function zwave(log, username, password) {
                     xml: doc.xml,
                     brandName: doc.object.ZWaveDevice.deviceDescription[0].brandName[0],
                     productName: doc.object.ZWaveDevice.deviceDescription[0].productName[0],
-                    batteryType: doc.object.ZWaveDevice.deviceDescription[0].batteryType[0],
-                    batteryCount: doc.object.ZWaveDevice.deviceDescription[0].batteryCount[0],
+                    battery: {
+                        type: doc.object.ZWaveDevice.deviceDescription[0].batteryType[0],
+                        count: doc.object.ZWaveDevice.deviceDescription[0].batteryCount[0],
+                    },
                     description,
                     deviceImage: doc.object.ZWaveDevice.resourceLinks[0].deviceImage[0].$.url,
                 };
@@ -66,7 +89,10 @@ module.exports = function zwave(log, username, password) {
                 const xmlData = deviceDates.filter((xmlDeviceData) => {
                     return device.xml === xmlDeviceData.xml;
                 });
-                return Object.assign({}, device, xmlData[0]);
+                if (xmlData.length > 0) {
+                    return merge(device, xmlData[0]);
+                }
+                return device;
             });
         });
     }).then((devices) => {
@@ -89,5 +115,7 @@ module.exports = function zwave(log, username, password) {
                 resolve();
             });
         });
+    }).catch((e) => {
+        log.fatal(e);
     });
 };
