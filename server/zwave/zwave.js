@@ -7,6 +7,7 @@ const merge = require('deepmerge');
 const authentication = require('./authentication');
 const devicesApi = require('./devices');
 const mongodb = require('../utils/MongoDBHelper');
+const sensorConverter = require('./converter/Sensor');
 
 const commandClassConverter = {
     '48': require('./converter/SensorBinary'),
@@ -14,13 +15,61 @@ const commandClassConverter = {
     '156': require('./converter/AlarmSensor'),
 };
 
+const state = {
+    cookie: null,
+    log: null,
+    db: null,
+};
+let lastUpdate = 0;
+
+function getSensorData(key) {
+    const data = key.split('.');
+    const deviceId = data[1];
+    if (data[2] === 'instances' && data[4] === 'commandClasses' && !isNaN(parseInt(data[5], 10))) {
+        const commandClass = data[5];
+        const sensorKey = data[7];
+        return {
+            deviceId,
+            commandClass,
+            sensorKey,
+        };
+    }
+}
+
+function getIncrementalUpdate() {
+    devicesApi.getIncrementalUpdate(state, lastUpdate)
+        .then((data) => {
+            const keys = Object.keys(data);
+            lastUpdate = data.updateTime;
+            state.log.debug(`Polling incremental update @ ${lastUpdate}. Received ${keys.length - 1} updates.`);
+            if (keys.length > 1) {
+                return Promise.all(
+                    keys.map((key) => {
+                        const sensorData = getSensorData(key);
+                        if (!sensorData || !commandClassConverter[sensorData.commandClass]) {
+                            return null;
+                        }
+                        const converter = commandClassConverter[sensorData.commandClass];
+                        const sensor = merge({
+                            key: sensorData.sensorKey,
+                            commandClass: sensorData.commandClass,
+                            lastUpdate: data[key].updateTime,
+                        }, converter(data[key]));
+
+                        state.log.debug(`Updated device data on device ${sensorData.deviceId}`, sensor);
+                        return mongodb.updateSensorData(state.db, sensorData.deviceId, sensor);
+                    })
+                );
+            }
+        })
+        .catch((e) => {
+            state.log.error(e);
+        });
+}
+
 module.exports = function zwave(log, username, password) {
     log.debug(`Zwave started`);
-    const state = {
-        cookie: null,
-        log,
-        db: null,
-    };
+    state.log = log;
 
     return Promise.all([
         mongodb.connect(),
@@ -31,9 +80,12 @@ module.exports = function zwave(log, username, password) {
         state.cookie = results[1];
         return devicesApi.getDevicesInfo(state);
     }).then((data) => {
-        //const controller = data.controller;
+        lastUpdate = data.updateTime;
+        setInterval(getIncrementalUpdate, 5000);
+
         const keys = Object.keys(data.devices);
         log.debug(`Found ${keys.length} zwave devices`);
+
         const devices = keys.map((key) => {
             const commandClasses = Object.keys(data.devices[key].instances['0'].commandClasses);
             const sensors = commandClasses
@@ -42,10 +94,11 @@ module.exports = function zwave(log, username, password) {
                 })
                 .map((commandClass) => {
                     const converter = commandClassConverter[commandClass];
-                    return converter(commandClass, data.devices[key].instances['0'].commandClasses[commandClass]);
+                    return sensorConverter(commandClass, data.devices[key].instances['0'].commandClasses[commandClass], converter);
                 });
 
             const flattenSensors = [].concat.apply([], sensors);
+
             return {
                 _id: key,
                 name: data.devices[key].data.givenName.value,
@@ -106,16 +159,12 @@ module.exports = function zwave(log, username, password) {
                     }
                 });
         }));
-    }).then(() => {
-        return new Promise((resolve, reject) => {
-            state.db.close((err) => {
-                if (err) {
-                    return reject(err);
-                }
-                resolve();
-            });
-        });
     }).catch((e) => {
         log.fatal(e);
+        state.db.close((err) => {
+            if (err) {
+                log.error(err);
+            }
+        });
     });
 };

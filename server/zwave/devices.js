@@ -8,8 +8,8 @@ const request = require('../utils/request');
 const url = require('../urls');
 
 module.exports = {
-    getDevicesInfo: function getDevicesInfo(state) {
-        return request.post(url.devices, null, {
+    getDevicesInfo(state) {
+        return request.post(url.data + '0', null, {
             'Cookie': state.cookie,
         }).then((data) => {
             if (data.statusCode !== 200) {
@@ -19,7 +19,7 @@ module.exports = {
         });
     },
 
-    getXml: function getXml(state, file) {
+    getXml(state, file) {
         return request.get(`${url.xml}/${file}`, null, {
             'Cookie': state.cookie,
         }).then((data) => {
@@ -38,6 +38,17 @@ module.exports = {
                     });
                 });
             });
+        });
+    },
+
+    getIncrementalUpdate(state, lastUpdate) {
+        return request.post(url.data + lastUpdate, null, {
+            'Cookie': state.cookie,
+        }).then((data) => {
+            if (data.statusCode !== 200) {
+                throw new Error(`${data.statusCode} ${data.error}`);
+            }
+            return data.body;
         });
     },
 };
