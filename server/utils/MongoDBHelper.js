@@ -5,6 +5,10 @@
 const MongoDB = require('mongodb');
 const MongoClient = MongoDB.MongoClient;
 
+function getSensorId(deviceId, sensor) {
+    return `${deviceId}.${sensor.commandClass}.${sensor.key}`;
+}
+
 module.exports = {
     connect() {
         const url = 'mongodb://localhost:27017/homecomfort';
@@ -54,23 +58,45 @@ module.exports = {
         return Promise.all(writes);
     },
 
-    getDeviceData(db, id) {
-        const collection = db.collection('devices');
+    getDevices(db) {
+        const DeviceCollection = db.collection('devices');
+        const sensorCollection = db.collection('sensors');
         return new Promise((resolve, reject) => {
-            collection.find({
-                _id: id,
-            }).limit(1).next((err, result) => {
+            DeviceCollection.find({}).toArray((err, result) => {
                 if (err) {
                     return reject(err);
                 }
-                resolve(result);
+                const promises = result.map((device) => {
+                    return device.sensors.map((sensor) => {
+                        return new Promise((resolve2, reject2) => {
+                            const key = getSensorId(device._id, sensor);
+                            sensorCollection.find({
+                                sensor: key,
+                            }, {
+                                sort: {
+                                    lastUpdate: -1,
+                                },
+                            }).limit(1).next((err2, sensorData) => {
+                                if (err2) {
+                                    return reject2(err2);
+                                }
+                                resolve2(sensorData);
+                            });
+                        }).then((sensorData) => {
+                            sensor.value = sensorData.value;
+                        });
+                    });
+                });
+                Promise.all([].concat.apply([], promises)).then(() => {
+                    resolve(result);
+                });
             });
         });
     },
 
     updateSensorData(db, deviceId, sensor) {
         const collection = db.collection('sensors');
-        const key = `${deviceId}.${sensor.commandClass}.${sensor.key}`;
+        const key = getSensorId(deviceId, sensor);
         return new Promise((resolve, reject) => {
             collection.insertOne({
                 sensor: key,

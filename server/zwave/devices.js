@@ -4,6 +4,7 @@
 
 const xml2js = require('xml2js');
 const parser = new xml2js.Parser();
+const log = require('../logger');
 const request = require('../utils/request');
 const url = require('../urls');
 
@@ -13,6 +14,7 @@ module.exports = {
             'Cookie': state.cookie,
         }).then((data) => {
             if (data.statusCode !== 200) {
+                log.error(`Couldn't get device info. Code ${data.statusCode}`);
                 throw new Error(`${data.statusCode} ${data.error}`);
             }
             return data.body;
@@ -24,6 +26,7 @@ module.exports = {
             'Cookie': state.cookie,
         }).then((data) => {
             if (data.statusCode !== 200) {
+                log.error(`Couldn't get device xml. Code ${data.statusCode}`);
                 throw new Error(`${data.statusCode} ${data.error}`);
             }
 
@@ -46,6 +49,7 @@ module.exports = {
             'Cookie': state.cookie,
         }).then((data) => {
             if (data.statusCode !== 200) {
+                log.error(`Couldn't get incremental update. Code ${data.statusCode}`);
                 throw new Error(`${data.statusCode} ${data.error}`);
             }
             return data.body;

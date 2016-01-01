@@ -3,6 +3,7 @@
  */
 
 const merge = require('deepmerge');
+const log = require('../logger');
 
 const authentication = require('./authentication');
 const devicesApi = require('./devices');
@@ -17,8 +18,8 @@ const commandClassConverter = {
 
 const state = {
     cookie: null,
-    log: null,
     db: null,
+    auth: null,
 };
 let lastUpdate = 0;
 
@@ -41,7 +42,7 @@ function getIncrementalUpdate() {
         .then((data) => {
             const keys = Object.keys(data);
             lastUpdate = data.updateTime;
-            state.log.debug(`Polling incremental update @ ${lastUpdate}. Received ${keys.length - 1} updates.`);
+            //log.debug(`Polling incremental update @ ${lastUpdate}. Received ${keys.length - 1} updates.`);
             if (keys.length > 1) {
                 return Promise.all(
                     keys.map((key) => {
@@ -56,24 +57,35 @@ function getIncrementalUpdate() {
                             lastUpdate: data[key].updateTime,
                         }, converter(data[key]));
 
-                        state.log.debug(`Updated device data on device ${sensorData.deviceId}`, sensor);
+                        log.debug(`Updated device data on device ${sensorData.deviceId}`, sensor);
                         return mongodb.updateSensorData(state.db, sensorData.deviceId, sensor);
                     })
                 );
             }
         })
         .catch((e) => {
-            state.log.error(e);
+            log.error(e);
+            if (e.response.statusCode === 403) {
+                return authentication.login(state.auth.username, state.auth.password).then((cookie) => {
+                    log.debug('Reauthenticated zwave');
+                    state.cookie = cookie;
+                }).catch((error) => {
+                    log.fatal(error);
+                    process.exit(3);
+                });
+            }
         });
 }
 
-module.exports = function zwave(log, username, password) {
+module.exports = function zwave(username, password) {
     log.debug(`Zwave started`);
-    state.log = log;
-
+    state.auth = {
+        username,
+        password,
+    };
     return Promise.all([
         mongodb.connect(),
-        authentication.login(log, username, password),
+        authentication.login(username, password),
     ]).then((results) => {
         log.debug('Connected to mongodb and zwave');
         state.db = results[0];
@@ -165,6 +177,14 @@ module.exports = function zwave(log, username, password) {
             if (err) {
                 log.error(err);
             }
+            throw e;
         });
     });
+};
+
+module.exports.getDevices = function getDevices() {
+    if (!state.db) {
+        return null;
+    }
+    return mongodb.getDevices(state.db);
 };

@@ -3,11 +3,7 @@
  */
 
 const Hapi = require('hapi');
-const bunyan = require('bunyan');
-const log = bunyan.createLogger({
-    name: 'homecomfortcli',
-    level: 'debug',
-});
+const log = require('./logger');
 
 const routes = require('./routes');
 const zwave = require('./zwave/zwave');
@@ -19,7 +15,8 @@ routes(server);
 
 server.start((err) => {
     if (err) {
-        return log.error('Server did not start');
+        log.error('Server did not start');
+        return process.exit(1);
     }
     log.info('Server running at:', server.info.uri);
 });
@@ -27,4 +24,7 @@ server.start((err) => {
 const processArguments = require('./utils/processArguments');
 const username = processArguments.get('username');
 const password = processArguments.get('password');
-zwave(log, username, password);
+zwave(username, password)
+    .catch(() => {
+        process.exit(2);
+    });
