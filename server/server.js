@@ -21,10 +21,4 @@ server.start((err) => {
     log.info('Server running at:', server.info.uri);
 });
 
-const processArguments = require('./utils/processArguments');
-const username = processArguments.get('username');
-const password = processArguments.get('password');
-zwave(username, password)
-    .catch(() => {
-        process.exit(2);
-    });
+zwave();

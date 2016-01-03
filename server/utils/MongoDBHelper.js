@@ -5,6 +5,10 @@
 const MongoDB = require('mongodb');
 const MongoClient = MongoDB.MongoClient;
 
+function getDeviceId(user, deviceId) {
+    return `${user._id}/${deviceId}`;
+}
+
 function getSensorId(deviceId, sensor) {
     return `${deviceId}.${sensor.commandClass}.${sensor.key}`;
 }
@@ -22,10 +26,13 @@ module.exports = {
         });
     },
 
-    setDevice(db, device) {
+    setDevice(db, user, device) {
         const collection = db.collection('devices');
+
+        device._id = getDeviceId(user, device.deviceId);
+        device.user = user._id;
         const writes = device.sensors.map((sensor) => {
-            return this.updateSensorData(db, device._id, sensor);
+            return this.updateSensorData(db, user, device.deviceId, sensor);
         });
         device.sensors = device.sensors.map((sensor) => {
             const keys = Object.keys(sensor);
@@ -58,11 +65,13 @@ module.exports = {
         return Promise.all(writes);
     },
 
-    getDevices(db) {
+    getDevices(db, user) {
         const DeviceCollection = db.collection('devices');
         const sensorCollection = db.collection('sensors');
         return new Promise((resolve, reject) => {
-            DeviceCollection.find({}).toArray((err, result) => {
+            DeviceCollection.find({
+                user: user._id,
+            }).toArray((err, result) => {
                 if (err) {
                     return reject(err);
                 }
@@ -83,20 +92,25 @@ module.exports = {
                                 resolve2(sensorData);
                             });
                         }).then((sensorData) => {
-                            sensor.value = sensorData.value;
+                            if (sensorData) {
+                                sensor.value = sensorData.value;
+                            }
                         });
                     });
                 });
                 Promise.all([].concat.apply([], promises)).then(() => {
                     resolve(result);
+                }).catch((e) => {
+                    reject(e);
                 });
             });
         });
     },
 
-    updateSensorData(db, deviceId, sensor) {
+    updateSensorData(db, user, deviceId, sensor) {
         const collection = db.collection('sensors');
-        const key = getSensorId(deviceId, sensor);
+        const dbDeviceId = getDeviceId(user, deviceId);
+        const key = getSensorId(dbDeviceId, sensor);
         return new Promise((resolve, reject) => {
             collection.insertOne({
                 sensor: key,
@@ -107,6 +121,34 @@ module.exports = {
                     return reject(err);
                 }
                 resolve(result);
+            });
+        });
+    },
+
+    getUserByToken(db, token) {
+        const UserCollection = db.collection('users');
+        return new Promise((resolve, reject) => {
+            UserCollection.find({
+                token,
+            }).limit(1).next((err, user) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(user);
+            });
+        });
+    },
+
+    getUserByName(db, username) {
+        const UserCollection = db.collection('users');
+        return new Promise((resolve, reject) => {
+            UserCollection.find({
+                user: username,
+            }).limit(1).next((err, user) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(user);
             });
         });
     },
