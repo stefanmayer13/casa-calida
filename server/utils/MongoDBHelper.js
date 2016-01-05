@@ -15,7 +15,9 @@ function getSensorId(deviceId, sensor) {
 
 module.exports = {
     connect() {
-        const url = 'mongodb://localhost:27017/homecomfort';
+        const mongoIp = process.env.MONGO_PORT_27017_TCP_ADDR || 'localhost';
+        const mongoPort = process.env.MONGO_PORT_27017_TCP_PORT || '27017'
+        const url = `mongodb://${mongoIp}:${mongoPort}/homecomfort`;
         return new Promise((resolve, reject) => {
             MongoClient.connect(url, function (err, db) {
                 if (err) {
