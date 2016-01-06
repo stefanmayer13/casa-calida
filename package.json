@@ -1,7 +1,7 @@
 {
-  "name": "homecomfort",
+  "name": "casa-calida",
   "version": "0.1.0",
-  "description": "Homeautomation Interface for a Z-Wave infrastructure using the RaZberry REST interface.",
+  "description": "Connects your RaZberry to the Casa-Calida servers.",
   "main": "index.js",
   "scripts": {
     "start": "babel-node server/server",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stefanmayer13/homecomfort.git"
+    "url": "git+https://github.com/stefanmayer13/casa-calida.git"
   },
   "keywords": [
     "z-wave",
@@ -24,7 +24,7 @@
   "bugs": {
     "url": "https://github.com/stefanmayer13/homecomfort/issues"
   },
-  "homepage": "https://github.com/stefanmayer13/homecomfort#readme",
+  "homepage": "http://www.casa-calida.com",
   "devDependencies": {
     "babel-cli": "^6.3.17",
     "babel-plugin-syntax-trailing-function-commas": "^6.3.13",
