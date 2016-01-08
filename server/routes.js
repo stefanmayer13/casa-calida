@@ -1,5 +1,5 @@
 /**
- * @author <a href="mailto:stefanmayer13@gmail.com">Stefan Mayer</a>
+ * @author <a href="mailto:stefan@stefanmayer.me">Stefan Mayer</a>
  */
 
 const zwave = require('./zwave/zwave');
@@ -11,6 +11,20 @@ module.exports = function registerRoutes(server) {
         path: '/',
         handler(request, reply) {
             reply('Hello, world!');
+        },
+    });
+
+    server.route({
+        method: 'GET',
+        path: '/{data}',
+        config: {
+            auth: {
+                strategy: 'session',
+                scope: 'user',
+            },
+            handler(request, reply) {
+                reply('Hello, world!');
+            },
         },
     });
 

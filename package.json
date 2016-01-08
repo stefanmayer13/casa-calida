@@ -19,7 +19,7 @@
     "razberry",
     "automation"
   ],
-  "author": "Stefan Mayer <stefanmayer13@gmail.com>",
+  "author": "Stefan Mayer <stefan@stefanmayer.me>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/stefanmayer13/homecomfort/issues"
@@ -46,6 +46,8 @@
     "bunyan": "^1.5.1",
     "deepmerge": "^0.2.10",
     "hapi": "^11.1.4",
+    "hapi-auth-cookie": "^5.0.0",
+    "inert": "^3.2.0",
     "mongodb": "^2.1.2",
     "superagent": "^1.6.1"
   }
