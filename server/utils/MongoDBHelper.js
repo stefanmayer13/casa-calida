@@ -19,7 +19,7 @@ module.exports = {
         const mongoPort = process.env.MONGO_PORT_27017_TCP_PORT || '27017'
         const url = `mongodb://${mongoIp}:${mongoPort}/casacalida`;
         return new Promise((resolve, reject) => {
-            MongoClient.connect(url, function (err, db) {
+            MongoClient.connect(url, (err, db) => {
                 if (err) {
                     return reject(err);
                 }
@@ -33,15 +33,12 @@ module.exports = {
 
         device._id = getDeviceId(user, device.deviceId);
         device.user = user._id;
-        const writes = device.sensors.map((sensor) => {
-            return this.updateSensorData(db, user, device.deviceId, sensor);
-        });
+        const writes = device.sensors
+            .map((sensor) => this.updateSensorData(db, user, device.deviceId, sensor));
         device.sensors = device.sensors.map((sensor) => {
             const keys = Object.keys(sensor);
             const mappedSensor = keys
-                .filter((key) => {
-                    return key !== 'value' && key !== 'lastUpdate';
-                })
+                .filter((key) => key !== 'value' && key !== 'lastUpdate')
                 .reduce((prev, key) => {
                     prev[key] = sensor[key];
                     return prev;
@@ -77,9 +74,9 @@ module.exports = {
                 if (err) {
                     return reject(err);
                 }
-                const promises = result.map((device) => {
-                    return device.sensors.map((sensor) => {
-                        return new Promise((resolve2, reject2) => {
+                const promises = result
+                    .map((device) => device.sensors
+                        .map((sensor) => new Promise((resolve2, reject2) => {
                             const key = getSensorId(device._id, sensor);
                             sensorCollection.find({
                                 sensor: key,
@@ -98,9 +95,9 @@ module.exports = {
                                 sensor.value = sensorData.value;
                                 sensor.lastUpdate = sensorData.lastUpdate;
                             }
-                        });
-                    });
-                });
+                        })
+                    )
+                );
                 Promise.all([].concat.apply([], promises)).then(() => {
                     resolve(result);
                 }).catch((e) => {

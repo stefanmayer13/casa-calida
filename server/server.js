@@ -24,7 +24,7 @@ zwave().then(() => {
     log.debug('Registering plugins');
     const plugins = [HapiAuthCookie, Inert];
 
-    server.register(plugins, function pluginsRegistered(err) {
+    server.register(plugins, (err) => {
         if (err) {
             log.error(err);
             return;

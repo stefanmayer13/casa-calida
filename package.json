@@ -34,8 +34,6 @@
     "babel-register": "^6.5.2",
     "chai": "^3.5.0",
     "eslint": "^2.0.0",
-    "eslint-config-airbnb": "^2.1.1",
-    "eslint-plugin-react": "^3.16.1",
     "mocha": "^2.4.5",
     "rewire": "^2.5.1",
     "sinon": "^1.17.3"

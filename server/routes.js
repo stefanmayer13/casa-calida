@@ -55,9 +55,8 @@ module.exports = function registerRoutes(server) {
         path: '/api/v1/fullupdate',
         handler(request, reply) {
             zwave.getUser(request.headers.token)
-                .then((user) => {
-                    return zwave.fullUpdate(user, request.payload);
-                }).then(reply).catch(reply);
+                .then((user) => zwave.fullUpdate(user, request.payload))
+                .then(reply).catch(reply);
         },
     });
 
@@ -66,9 +65,8 @@ module.exports = function registerRoutes(server) {
         path: '/api/v1/incrementalupdate',
         handler(request, reply) {
             zwave.getUser(request.headers.token)
-                .then((user) => {
-                    return zwave.incrementalUpdate(user, request.payload);
-                }).then(reply).catch(reply);
+                .then((user) => zwave.incrementalUpdate(user, request.payload))
+                .then(reply).catch(reply);
         },
     });
 };

@@ -59,16 +59,16 @@ module.exports.getUser = function getUser(token) {
 module.exports.fullUpdate = function fullUpdate(user, devices) {
     log.debug(`Received full update from ${user.user}`);
     checkDb();
-    return Promise.all(devices.map((device) => {
-        return mongodb.setDevice(state.db, user, device)
+    return Promise.all(devices
+        .map((device) => mongodb.setDevice(state.db, user, device)
             .then((ret) => {
                 if (ret.upsertedCount === 1) {
                     log.debug(`Added device ${device._id}`);
                 } else if (ret.modifiedCount === 1) {
                     log.debug(`Updated device ${device._id}`);
                 }
-            });
-    })).catch((e) => {
+            })
+    )).catch((e) => {
         log.error(e);
         throw e;
     });
@@ -77,9 +77,9 @@ module.exports.fullUpdate = function fullUpdate(user, devices) {
 module.exports.incrementalUpdate = function incrementalUpdate(user, sensors) {
     log.debug(`Received incremental update from ${user.user}`);
     checkDb();
-    return Promise.all(sensors.map((sensor) => {
-        return mongodb.updateSensorData(state.db, user, sensor.deviceId, sensor.sensor);
-    })).catch((e) => {
+    return Promise.all(sensors
+        .map((sensor) => mongodb.updateSensorData(state.db, user, sensor.deviceId, sensor.sensor)))
+    .catch((e) => {
         log.error(e);
         throw e;
     });

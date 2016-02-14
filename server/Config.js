@@ -12,4 +12,4 @@ switch (process.env.NODE_ENV) {
         env = 'dev';
 }
 
-module.exports = require('../config/' + env + '/server');
+module.exports = require(`../config/${env}/server`);
