@@ -26,29 +26,29 @@
   },
   "homepage": "http://www.casa-calida.com",
   "devDependencies": {
-    "babel-cli": "^6.3.17",
-    "babel-plugin-syntax-trailing-function-commas": "^6.3.13",
-    "babel-plugin-transform-class-properties": "^6.3.13",
-    "babel-plugin-transform-es2015-parameters": "^6.3.18",
-    "babel-plugin-transform-strict-mode": "^6.3.13",
-    "babel-register": "^6.3.13",
-    "chai": "^3.4.1",
-    "eslint": "^1.10.3",
+    "babel-cli": "^6.5.1",
+    "babel-plugin-syntax-trailing-function-commas": "^6.5.0",
+    "babel-plugin-transform-class-properties": "^6.5.2",
+    "babel-plugin-transform-es2015-parameters": "^6.5.0",
+    "babel-plugin-transform-strict-mode": "^6.5.2",
+    "babel-register": "^6.5.2",
+    "chai": "^3.5.0",
+    "eslint": "^2.0.0",
     "eslint-config-airbnb": "^2.1.1",
-    "eslint-plugin-react": "^3.11.3",
-    "mocha": "^2.3.4",
+    "eslint-plugin-react": "^3.16.1",
+    "mocha": "^2.4.5",
     "rewire": "^2.5.1",
-    "sinon": "^1.17.2"
+    "sinon": "^1.17.3"
   },
   "dependencies": {
-    "bluebird": "^3.1.1",
-    "boom": "^3.1.1",
-    "bunyan": "^1.5.1",
+    "bluebird": "^3.3.1",
+    "boom": "^3.1.2",
+    "bunyan": "^1.6.0",
     "deepmerge": "^0.2.10",
-    "hapi": "^11.1.4",
-    "hapi-auth-cookie": "^5.0.0",
+    "hapi": "^13.0.0",
+    "hapi-auth-cookie": "^6.0.0",
     "inert": "^3.2.0",
-    "mongodb": "^2.1.2",
-    "superagent": "^1.6.1"
+    "mongodb": "^2.1.7",
+    "superagent": "^1.7.2"
   }
 }

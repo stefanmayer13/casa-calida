@@ -9,6 +9,11 @@ const log = require('./logger');
 
 const sessionSecret = process.env.NODE_SESSION_SECRET;
 
+if (!sessionSecret) {
+    log.error('Please provide a sesson secret. See README for more infos.');
+    process.exit(1);
+}
+
 const routes = require('./routes');
 const zwave = require('./zwave/zwave');
 

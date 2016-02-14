@@ -96,6 +96,7 @@ module.exports = {
                         }).then((sensorData) => {
                             if (sensorData) {
                                 sensor.value = sensorData.value;
+                                sensor.lastUpdate = sensorData.lastUpdate;
                             }
                         });
                     });
