@@ -19,7 +19,7 @@
     "spread": true,
     "superInFunctions": true,
     "templateStrings": true,
-    "jsx": true
+    "jsx": false
   },
   "rules": {
     // babel inserts `"use strict";` for us
