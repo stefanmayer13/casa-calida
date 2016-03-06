@@ -7,12 +7,8 @@ const mongodb = require('../utils/MongoDBHelper');
 const User = require('../mongodb/User');
 const mongodbZwave = require('../mongodb/Zwave');
 
-const state = {
-    db: null,
-};
-
 function checkDb() {
-    if (!state.db) {
+    if (!mongodb.getDb()) {
         const error = new Error('Database not initialized');
         log.error(error);
         throw error;
@@ -23,10 +19,9 @@ module.exports = function init() {
     return mongodb.connect()
         .then((db) => {
             log.debug('Connected to mongodb');
-            state.db = db;
         }).catch((e) => {
             log.fatal(e);
-            state.db.close((err) => {
+            mongodb.getDb().close((err) => {
                 if (err) {
                     log.error(err);
                 }
@@ -37,11 +32,11 @@ module.exports = function init() {
 
 module.exports.getDevices = function getDevices() {
     checkDb();
-    return User.getUserByName(state.db, 'smayer').then((user) => {
+    return User.getUserByName('smayer').then((user) => {
         if (!user) {
             return Promise.reject('TODO remove');
         }
-        return mongodb.getDevices(state.db, user)
+        return mongodbZwave.getDevices(user)
             .catch((e) => {
                 log.error(e);
                 throw e;
@@ -51,7 +46,7 @@ module.exports.getDevices = function getDevices() {
 
 module.exports.getUser = function getUser(token) {
     checkDb();
-    return User.getUserByToken(state.db, token)
+    return User.getUserByToken(token)
         .catch((e) => {
             log.error(e);
             throw e;
@@ -62,7 +57,7 @@ module.exports.fullUpdate = function fullUpdate(user, devices) {
     log.debug(`Received full update from ${user.user}`);
     checkDb();
     return Promise.all(devices
-        .map((device) => mongodbZwave.setDevice(state.db, user, device)
+        .map((device) => mongodbZwave.setDevice(user, device)
             .then((ret) => {
                 if (ret.upsertedCount === 1) {
                     log.debug(`Added device ${device._id}`);
@@ -80,7 +75,7 @@ module.exports.incrementalUpdate = function incrementalUpdate(user, sensors) {
     log.debug(`Received incremental update from ${user.user}`);
     checkDb();
     return Promise.all(sensors
-        .map((sensor) => mongodbZwave.updateSensorData(state.db, user, sensor.deviceId, sensor.sensor)))
+        .map((sensor) => mongodbZwave.updateSensorData(user, sensor.deviceId, sensor.sensor)))
     .catch((e) => {
         log.error(e);
         throw e;

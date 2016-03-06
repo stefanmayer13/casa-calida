@@ -5,13 +5,7 @@
 const MongoDB = require('mongodb');
 const MongoClient = MongoDB.MongoClient;
 
-function getDeviceId(user, deviceId) {
-    return `${user._id}/${deviceId}`;
-}
-
-function getSensorId(deviceId, sensor) {
-    return `${deviceId}.${sensor.commandClass}.${sensor.key}`;
-}
+let activeDb = null;
 
 module.exports = {
     connect() {
@@ -23,8 +17,13 @@ module.exports = {
                 if (err) {
                     return reject(err);
                 }
+                activeDb = db;
                 resolve(db);
             });
         });
     },
+
+    getDb() {
+        return activeDb;
+    }
 };

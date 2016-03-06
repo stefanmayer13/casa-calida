@@ -3,7 +3,7 @@
  */
 
 const zwave = require('./zwave/zwave');
-const login = require('./auth/login');
+const auth = require('./auth/auth');
 const Boom = require('boom');
 
 module.exports = function registerRoutes(server) {
@@ -30,11 +30,20 @@ module.exports = function registerRoutes(server) {
     });
 
     server.route({
-        method: 'GET',
+        method: 'POST',
+        path: '/api/v1/register',
+        config: {
+            auth: {mode: 'try'},
+            handler: auth.register,
+        },
+    });
+
+    server.route({
+        method: 'POST',
         path: '/api/v1/login',
         config: {
             auth: {mode: 'try'},
-            handler: login,
+            handler: auth.login,
         },
     });
 

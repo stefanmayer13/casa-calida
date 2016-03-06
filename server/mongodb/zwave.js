@@ -2,8 +2,19 @@
  * @author <a href="mailto:stefan@stefanmayer.me">Stefan Mayer</a>
  */
 
+const mongodb = require('../utils/MongoDBHelper');
+
+function getDeviceId(user, deviceId) {
+    return `${user._id}/${deviceId}`;
+}
+
+function getSensorId(deviceId, sensor) {
+    return `${deviceId}.${sensor.commandClass}.${sensor.key}`;
+}
+
 module.exports = {
-    setDevice(db, user, device) {
+    setDevice(user, device) {
+        const db = mongodb.getDb();
         const collection = db.collection('devices');
 
         device._id = getDeviceId(user, device.deviceId);
@@ -39,7 +50,8 @@ module.exports = {
         return Promise.all(writes);
     },
 
-    getDevices(db, user) {
+    getDevices(user) {
+        const db = mongodb.getDb();
         const DeviceCollection = db.collection('devices');
         const sensorCollection = db.collection('sensors');
         return new Promise((resolve, reject) => {
@@ -82,7 +94,8 @@ module.exports = {
         });
     },
 
-    updateSensorData(db, user, deviceId, sensor) {
+    updateSensorData(user, deviceId, sensor) {
+        const db = mongodb.getDb();
         const collection = db.collection('sensors');
         const dbDeviceId = getDeviceId(user, deviceId);
         const key = getSensorId(dbDeviceId, sensor);

@@ -2,12 +2,15 @@
  * @author <a href="mailto:stefan@stefanmayer.me">Stefan Mayer</a>
  */
 
+const Boom = require('boom');
 const userCollection = 'users';
 const bcrypt = require('bcrypt');
 const log = require('../logger');
+const mongodb = require('../utils/MongoDBHelper');
 
 module.exports = {
-    registerUser(db, username, password) {
+    registerUser(username, password) {
+        const db = mongodb.getDb();
         const UserCollection = db.collection(userCollection);
         return new Promise((resolve, reject) => {
             UserCollection.find({
@@ -15,20 +18,20 @@ module.exports = {
             }).toArray((err, users) => {
                 if (err) {
                     log.error(err);
-                    return reject(err);
+                    return reject(Boom.badImplementation(err));
                 }
                 if (users.length > 0) {
-                    reject('Username already taken'); //TODO change to support multilanguage
+                    reject(Boom.badRequest('Username already taken')); //TODO change to support multilanguage
                 } else {
                     bcrypt.genSalt(10, (err, salt) => {
                         if (err) {
                             log.error(err);
-                            return reject(err);
+                            return reject(Boom.badImplementation(err));
                         }
                         bcrypt.hash(password, salt, (err, hash) => {
                             if (err) {
                                 log.error(err);
-                                return reject(err);
+                                return reject(Boom.badImplementation(err));
                             }
                             UserCollection.insertOne({
                                 user: username,
@@ -36,7 +39,7 @@ module.exports = {
                             }, (err) => {
                                 if (err) {
                                     log.error(err);
-                                    return reject(err);
+                                    return reject(Boom.badImplementation(err));
                                 }
                                 resolve();
                             });
@@ -47,7 +50,8 @@ module.exports = {
         });
     },
 
-    checkAuthentication(db, username, password) {
+    checkAuthentication(username, password) {
+        const db = mongodb.getDb();
         const UserCollection = db.collection(userCollection);
         return new Promise((resolve, reject) => {
             UserCollection.find({
@@ -59,7 +63,7 @@ module.exports = {
                 } else if (!user) {
                     return reject('No user found'); //TODO change to support multilanguage
                 }
-                bcrypt.compare(password, hash, (err, res) => {
+                bcrypt.compare(password, user.password, (err, res) => {
                     if (err) {
                         log.error(err);
                         return reject(err);
@@ -72,7 +76,8 @@ module.exports = {
         });
     },
 
-    getUserByToken(db, token) {
+    getUserByToken(token) {
+        const db = mongodb.getDb();
         const UserCollection = db.collection(userCollection);
         return new Promise((resolve, reject) => {
             UserCollection.find({
@@ -87,7 +92,8 @@ module.exports = {
         });
     },
 
-    getUserByName(db, username) {
+    getUserByName(username) {
+        const db = mongodb.getDb();
         const UserCollection = db.collection(userCollection);
         return new Promise((resolve, reject) => {
             UserCollection.find({
