@@ -48,6 +48,7 @@
     "hapi-auth-cookie": "^6.0.0",
     "inert": "^3.2.0",
     "mongodb": "^2.1.7",
+    "node-uuid": "^1.4.7",
     "superagent": "^1.7.2"
   }
 }
